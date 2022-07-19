@@ -6,30 +6,33 @@
  */
 
 #include "../inc/app.h"
-#include "sapi.h"
+
 
 /* */
-void led_task(void)
+void cont_task1(void)
 {
-	bool stateLed = FALSE;
+	uint32_t cont_1 = 0;
+	uint32_t cont_2 = 0;
 
 	while (1) {
-		if(stateLed == FALSE)
-		{
-			gpioWrite( LED2, ON );
-			stateLed = TRUE;
-		}
-		else
-		{
-			gpioWrite( LED2, OFF );
-			stateLed = FALSE;
-		}
-
+		cont_1++;
+		cont_2++;
 	}
 }
 
 /* */
-void cont_task(void)
+void cont_task2(void)
+{
+	uint32_t cont_1 = 0;
+	uint32_t cont_2 = 0;
+
+	while (1) {
+		cont_1++;
+		cont_2++;
+	}
+}
+/* */
+void cont_task3(void)
 {
 	uint32_t cont_1 = 0;
 	uint32_t cont_2 = 0;

@@ -14,7 +14,7 @@
 //task_t * pTaskCont2 = NULL;
 //task_t * pTaskLed = NULL;
 
-task_t TaskCont1, TaskCont2, TaskLed;
+task_t TaskCont1, TaskCont2, TaskCont3;
 
 /* */
 static void sys_init(void)
@@ -32,9 +32,9 @@ int main( void )
 {
 	sys_init();
 
-	os_task_create(&TaskCont1, cont_task, (const char *)"Tarea1", NULL, 1);
-	os_task_create(&TaskCont2, cont_task, (const char *)"Tarea2", NULL, 1);
-	os_task_create(&TaskLed, led_task, (const char *)"Tarea3", NULL, 1);
+	os_task_create(&TaskCont1, cont_task1, (const char *)"Tarea1", NULL, 1);
+	os_task_create(&TaskCont2, cont_task2, (const char *)"Tarea2", NULL, 1);
+	os_task_create(&TaskCont3, cont_task3, (const char *)"Tarea3", NULL, 1);
 
 	os_init();
 

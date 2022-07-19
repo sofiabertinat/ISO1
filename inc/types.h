@@ -14,7 +14,7 @@
 #include <stdlib.h>
 
 #include "board.h"
-#include "chip.h"
+
 
 #define ERROR		-1
 #define RETURN_FAIL  0

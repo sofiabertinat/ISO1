@@ -8,6 +8,7 @@
 #include "../inc/os_core.h"
 #include "../inc/os_task.h"
 #include "../inc/table.h"
+#include "chip_lpc43xx.h"
 
 
 typedef enum _osState
@@ -76,7 +77,7 @@ static void os_scheduler(void)
 }
 
 /* SysTick: Exception generated from system timer. Used as a time base in OS.*/
-static void sysTick_handler(void)
+static void SysTick_Handler(void)
 {
 	os_scheduler();
 
