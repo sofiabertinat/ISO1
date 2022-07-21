@@ -7,7 +7,6 @@
 
 #include "../inc/os_core.h"
 #include "../inc/os_task.h"
-#include "../inc/table.h"
 #include "chip_lpc43xx.h"
 
 
@@ -24,11 +23,11 @@ typedef struct _osControl
 	task_t 		*current_task;
 	task_t 		*next_task;
 	int8_t 	    error;
+	task_t *    list[8];
+	int 		cant;
 } osControl_t;
 
-static osControl_t control_OS;
-
-static table_t * task_table = NULL;
+osControl_t control_OS;
 
 /* */
 void os_task_create(task_t * pTask, void * entryPoint, const char * const pcName, void * const pvParameters, uint8_t priority)
@@ -36,19 +35,14 @@ void os_task_create(task_t * pTask, void * entryPoint, const char * const pcName
 	bool taskCreated = 0;
 	u_int32_t id;
 
-	if(task_table == NULL)
-		id = 0;
-	else
-		id = table_max_item_number( task_table);
+	control_OS.cant = control_OS.cant +1;
 
-	taskCreated = os_task_init(pTask, entryPoint, pcName, pvParameters, priority, id);
+	taskCreated = os_task_init(pTask, entryPoint, pcName, pvParameters, priority, control_OS.cant);
 
 	if(taskCreated)
 	{
-		if(task_table == NULL)
-			table_init(task_table, pTask, sizeof(task_t *));
-		else
-			table_add_item( task_table, pTask);
+		control_OS.list[control_OS.cant-1] = pTask;
+
 	}
 }
 
@@ -62,22 +56,22 @@ static void os_scheduler(void)
 	if (control_OS.sys_state == OS_STARTING)
 	{
 		i_task = 1;
+		/* Set current task as first configure task */
+		control_OS.current_task = control_OS.list[i_task-1];
 	}
 	else
 	{
 		i_task = control_OS.current_task->id +1;
+		if(i_task > control_OS.cant)
+			i_task = 1;
 	}
 
-	if(table_get_item( task_table, i_task, aux_p_task) == RETURN_FAIL)
-	{
-		table_get_item( task_table, 1, aux_p_task);
-	}
 	/* Set current task as first configure task */
-	control_OS.next_task = aux_p_task;
+	control_OS.next_task = control_OS.list[i_task-1];
 }
 
 /* SysTick: Exception generated from system timer. Used as a time base in OS.*/
-static void SysTick_Handler(void)
+void SysTick_Handler(void)
 {
 	os_scheduler();
 

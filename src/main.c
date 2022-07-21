@@ -10,9 +10,6 @@
 #include "../inc/os_task.h"
 #include "../inc/app.h"
 
-//task_t * pTaskCont1 = NULL;
-//task_t * pTaskCont2 = NULL;
-//task_t * pTaskLed = NULL;
 
 task_t TaskCont1, TaskCont2, TaskCont3;
 

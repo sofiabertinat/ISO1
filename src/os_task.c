@@ -19,11 +19,6 @@ bool os_task_init(task_t * pTask, void * entryPoint, const char * const pcName, 
 
 	task_t *pTask_aux = NULL;
 
-	//pTask_aux = malloc(sizeof(task_t));
-
-	//if(pTask_aux == NULL)
-	//	return RETURN_FAIL;
-
 	pTask_aux = pTask;
 
 	/* Thumb bit*/
