@@ -7,7 +7,6 @@
 
 #include "../inc/os_core.h"
 #include "../inc/os_task.h"
-#include "chip_lpc43xx.h"
 
 
 typedef enum _osState
