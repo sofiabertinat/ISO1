@@ -6,6 +6,7 @@
  */
 
 #include "../inc/os_task.h"
+#include "../inc/os_hook.h"
 
 #define STACK_FRAME_SIZE			8
 #define FULL_STACKING_SIZE 			17	/* 16 core registers + LR previous value*/
@@ -16,7 +17,7 @@
 /* */
 bool os_task_init(task_t * pTask, void * entryPoint, const char * const pcName, void * const pvParameters, priority_t priority, uint32_t id)
 {
-
+	uint8_t i;
 	task_t *pTask_aux = NULL;
 
 	pTask_aux = pTask;
@@ -25,6 +26,8 @@ bool os_task_init(task_t * pTask, void * entryPoint, const char * const pcName, 
 	pTask_aux->stack[STACK_SIZE/4 - XPSR] = INIT_XPSR;
 	/* save task init address*/
 	pTask_aux->stack[STACK_SIZE/4 - PC_REG] = (uint32_t)entryPoint;
+	/* Task return*/
+	pTask_aux->stack[STACK_SIZE/4 - LR] = (uint32_t)returnHook;
 
 	/*
 	 * El valor previo de LR (que es EXEC_RETURN en este caso) es necesario dado que
@@ -41,6 +44,13 @@ bool os_task_init(task_t * pTask, void * entryPoint, const char * const pcName, 
 	pTask_aux->state = TASK_READY;
 
 	pTask_aux->id = id;
+
+	pTask_aux->priority = priority;
+
+	pTask_aux->ticks_block = 0;
+
+	for(i=0;i<TASK_NAME_SIZE;i++)
+		pTask_aux->name[i] = pcName[i];
 
 	pTask = pTask_aux;
 

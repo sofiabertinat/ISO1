@@ -41,4 +41,10 @@
 #define R10 			16
 #define R11 			17
 
+#define MEMORY_ERROR 		0x01
+#define TASK_RETURN_ERROR 	0X02
+#define MAX_TASK_ERROR 		0X03
+
+
+
 #endif /* ISO1_INC_TYPES_H_ */

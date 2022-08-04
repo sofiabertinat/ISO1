@@ -6,39 +6,53 @@
  */
 
 #include "../inc/app.h"
+#include "../inc/os_api.h"
+#include "sapi.h"
 
+#include "../inc/os_queue.h"
+
+queue_t* displayQueue;
+
+void init_queue(void)
+{
+	displayQueue = os_queue_create();
+}
 
 /* */
-void cont_task1(void)
+void led_task(void )
 {
-	uint32_t cont_1 = 0;
-	uint32_t cont_2 = 0;
+	uint8_t cont = 0;
+	uint8_t * item;
 
 	while (1) {
-		cont_1++;
-		cont_2++;
+		gpioWrite(LED2,TRUE);
+		if(cont == 255)
+			cont = 0;
+		else
+			cont++;
+		item = (uint8_t*) malloc(sizeof(uint8_t));
+		*item = cont;
+		os_queue_write( displayQueue, item );
+		os_delay(60000);
+
+		gpioWrite(LED2,FALSE);
+		os_delay(60000);
 	}
 }
 
 /* */
-void cont_task2(void)
+void display_task(void )
 {
-	uint32_t cont_1 = 0;
-	uint32_t cont_2 = 0;
+	uint8_t* item;
 
 	while (1) {
-		cont_1++;
-		cont_2++;
+		item = (uint8_t*) os_queue_read( displayQueue);
+		uartWriteByte(UART_USB, *item);
+		free(item);
 	}
 }
 /* */
-void cont_task3(void)
+void test_hook_rtn_task(void )
 {
-	uint32_t cont_1 = 0;
-	uint32_t cont_2 = 0;
-
-	while (1) {
-		cont_1++;
-		cont_2++;
-	}
+	gpioWrite(LED1,TRUE);
 }

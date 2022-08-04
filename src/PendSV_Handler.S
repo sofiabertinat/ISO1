@@ -27,24 +27,43 @@
 
 PendSV_Handler:
 
-	/*
-	* Cuando se ingrea al handler de PendSV lo primero que se ejecuta es un push para
-	* guardar los registros R4-R11 y el valor de LR, que en este punto es EXEC_RETURN
-	* El push se hace al reves de como se escribe en la instruccion, por lo que LR
-	* se guarda en la posicion 9 (luego del stack frame). Como la funcion getContextoSiguiente
-	* se llama con un branch con link, el valor del LR es modificado guardando la direccion
-	* de retorno una vez se complete la ejecucion de la funcion
+	/* Disable interruptions */
+	cpsid i
 
-	* El pasaje de argumentos a getcontextSwitch se hace como especifica el AAPCS siendo
-	* el unico argumento pasado por RO, y el valor de retorno tambien se almacena en R0
-	*
+	/* FPU siempre activa */
+	/* Compruebo si el bit 4 del EXEC_RETURN es cero, este esta almacenado en LR*/
+	tst lr,0x10
+	it eq
+	Vpusheq {s16-s31}	/* PUSH de registros FPU */
+
+	/* Guardar los registros R4-R11 y el valor de LR, que en este punto es EXEC_RETURN
+	* El push se hace al reves de como se escribe en la instruccion, por lo que LR
+	* se guarda en la posicion 9 (luego del stack frame). */
+	push {r4-r11,lr}
+	/* El pasaje de argumentos a getcontextSwitch se hace como especifica el AAPCS siendo
+	* el unico argumento pasado por RO, y el valor de retorno tambien se almacena en R0 */
+	mrs r0,msp
+	/* Como la funcion getcontextSwitch se llama con un branch con link, el valor del LR
+	* es modificado guardando la direccion de retorno una vez se complete la ejecucion de la funcion */
+	bl getcontextSwitch
+	msr msp,r0
+	/* Recupero los valores de registros */
+	pop {r4-r11,lr}
+
+	/* Compruebo si el bit 4 del EXEC_RETURN es cero*/
+	tst lr,0x10
+	it eq
+	Vpopeq {s16-s31}	/* POP de registros FPU */
+
+	/* Enable interruptions */
+	cpsie i
+
+	/* Se hace un branch indirect con el valor de LR que es nuevamente EXEC_RETURN */
+	bx lr
+
+
+	/*
 	* NOTA: El primer ingreso a este handler (luego del reset) implica que el push se hace sobre el
 	* stack inicial, ese stack se pierde porque no hay seguimiento del MSP en el primer ingreso
 	*/
-	push {r4-r11,lr}
-	mrs r0,msp
-	bl getcontextSwitch
-	msr msp,r0
-	pop {r4-r11,lr}			//Recuperados todos los valores de registros
-	bx lr					//se hace un branch indirect con el valor de LR que es nuevamente EXEC_RETURN
 

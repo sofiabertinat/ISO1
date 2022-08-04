@@ -11,12 +11,15 @@
 #include "../inc/types.h"
 
 /* */
-void cont_task1(void);
+void led_task(void );
 
 /* */
-void cont_task2(void);
+void display_task(void );
 
 /* */
-void cont_task3(void);
+void test_hook_rtn_task(void );
+
+/**/
+void init_queue(void);
 
 #endif /* ISO1_INC_APP_H_ */
