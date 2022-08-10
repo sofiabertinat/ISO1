@@ -43,6 +43,7 @@ queue_t* os_queue_create(void)
 	new_queue->last_item  =  NULL;
 	new_queue->first_item = NULL;
 	new_queue->count = 0;
+	new_queue->task_blocked = NULL;
 
 	return new_queue;
 }
@@ -84,6 +85,7 @@ void* os_queue_read( queue_t* queue)
 	if(queue->first_item == NULL)
 	{
 		item =  NULL;
+		queue->task_blocked = os_get_current_task();
 		os_block_current_task();
 	}
 
@@ -91,6 +93,11 @@ void* os_queue_read( queue_t* queue)
 	{
 		item = queue->first_item->item;
 		os_queue_item_delete(queue);
+		if(queue->task_blocked != NULL)
+		{
+			os_unblock_task(queue->task_blocked);
+			queue->task_blocked = NULL;
+		}
 	}
 	return item;
 }
@@ -108,20 +115,32 @@ void os_queue_write( queue_t* queue, void* item )
 		{
 			queue->first_item = new_item;
 			queue->last_item = new_item;
+			queue->count++;
+			if(queue->task_blocked != NULL)
+			{
+				os_unblock_task(queue->task_blocked);
+				queue->task_blocked = NULL;
+			}
 		}
 		else
 		{
 			if(queue->count == MAX_QUEUE_ITEM)
 			{
+				queue->task_blocked = os_get_current_task();
 				os_block_current_task();
 			}
 			else
 			{
 				queue->last_item->next_item = new_item;
 				queue->last_item = new_item;
+				queue->count++;
+				if(queue->task_blocked != NULL)
+				{
+					os_unblock_task(queue->task_blocked);
+					queue->task_blocked = NULL;
+				}
 			}
 		}
-		queue->count++;
 	}
 
 }

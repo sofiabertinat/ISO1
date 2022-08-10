@@ -11,7 +11,7 @@
 /* */
 void os_sem_init(sem_t* sem)
 {
-	sem->taked = true;
+	sem->taked = TRUE;
 	sem->task = NULL;
 }
 
@@ -25,7 +25,7 @@ void os_sem_take(sem_t* sem)
 	}
 	else
 	{
-		sem->taked = true;
+		sem->taked = TRUE;
 	}
 }
 
@@ -34,10 +34,10 @@ void os_sem_give(sem_t* sem)
 {
 	if(sem->taked)
 	{
-		sem->taked = false;
+		sem->taked = FALSE;
 		if(sem->task != NULL)
 		{
-			sem->task->state = TASK_READY;
+			os_unblock_task(sem->task);
 		}
 	}
 }

@@ -78,7 +78,7 @@ static void os_set_pendSV(void)
 }
 
 /* */
-static void os_scheduler(void)
+static bool os_scheduler(void)
 {
 	uint32_t i_task;
 	task_t *aux_p_task;
@@ -98,7 +98,7 @@ static void os_scheduler(void)
 		 * or by the function os_cpu_yield in Thread mode */
 		if (control_OS.sys_state== OS_SCHEDULING)
 		{
-			return;
+			return RETURN_FAIL;
 		}
 		else
 		{
@@ -137,7 +137,7 @@ static void os_scheduler(void)
 			}
 
 			j++;
-			if(j > control_OS.cant)
+			if(j >= control_OS.cant)
 				j = 0;
 
 		}
@@ -156,22 +156,27 @@ static void os_scheduler(void)
 
 		if(control_OS.current_task->state == TASK_BLOCKED)
 		{
+			control_OS.sys_state = OS_RUN;
 			os_set_pendSV();
 		}
 
 		control_OS.sys_state = OS_RUN;
-	}
 
+		return RETURN_OK;
+	}
 }
 
 /* SysTick: Exception generated from system timer. Used as a time base in OS.*/
 void SysTick_Handler(void)
 {
+	bool rc;
+
 	control_OS.os_tick_count++;
 
-	os_scheduler();
+	rc = os_scheduler();
 
-	os_set_pendSV();
+	if(rc == RETURN_OK)
+		os_set_pendSV();
 
 }
 
@@ -246,6 +251,10 @@ uint32_t getcontextSwitch(uint32_t sp_current)
 			/* Return next line to run*/
 			sp_next = control_OS.next_task->stack_pointer;
 		}
+		else
+		{
+			sp_next = control_OS.current_task->stack_pointer;
+		}
 	}
 	/* Return to PendSv handler*/
 	return sp_next;
@@ -300,6 +309,12 @@ void os_block_current_task(void)
 {
 	control_OS.current_task->state = TASK_BLOCKED;
 	os_cpu_yield();
+}
+
+/**/
+void os_unblock_task(task_t* task)
+{
+	task->state = TASK_READY;
 }
 
 /**/

@@ -11,7 +11,7 @@
 #include "../inc/app.h"
 #include "sapi.h"
 
-task_t TaskLed, TaskDisplay, TaskTestHookRtn;
+task_t TaskWrite, TaskDisplay, TaskLedOn, TaskLedOff;
 
 /* */
 static void sys_init(void)
@@ -36,10 +36,12 @@ int main( void )
 	sys_init();
 
 	init_queue();
+	init_sem_led();
 
-	os_task_create(&TaskLed, led_task, (const char *)"Tarea00001", NULL, 1);
+	os_task_create(&TaskWrite, write_task, (const char *)"Tarea00001", NULL, 1);
 	os_task_create(&TaskDisplay, display_task, (const char *)"Tarea00002", NULL, 2);
-	os_task_create(&TaskTestHookRtn, test_hook_rtn_task, (const char *)"Tarea Test", NULL, 3);
+	os_task_create(&TaskLedOn, led_on_task, (const char *)"Tarea00001", NULL, 3);
+	os_task_create(&TaskLedOff, led_off_task, (const char *)"Tarea00002", NULL, 3);
 
 	os_init();
 

@@ -33,6 +33,9 @@ uint32_t os_get_tick_count( void );
 void os_block_current_task(void);
 
 /**/
+void os_unblock_task(task_t* task);
+
+/**/
 task_t* os_get_current_task(void);
 
 /**/

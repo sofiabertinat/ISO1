@@ -10,16 +10,25 @@
 #include "sapi.h"
 
 #include "../inc/os_queue.h"
+#include "../inc/os_sem.h"
 
 queue_t* displayQueue;
+sem_t semLed;
 
+/**/
 void init_queue(void)
 {
 	displayQueue = os_queue_create();
 }
 
+/**/
+void init_sem_led(void)
+{
+	os_sem_init(&semLed);
+}
+
 /* */
-void led_task(void )
+void write_task(void )
 {
 	uint8_t cont = 0;
 	uint8_t * item;
@@ -51,8 +60,26 @@ void display_task(void )
 		free(item);
 	}
 }
+
 /* */
-void test_hook_rtn_task(void )
+void led_on_task(void)
 {
-	gpioWrite(LED1,TRUE);
+	while (1) {
+		os_sem_take(&semLed);
+		gpioWrite(LED1,TRUE);
+	}
 }
+
+/* */
+void led_off_task(void)
+{
+	while (1) {
+		gpioWrite(LED1,FALSE);
+		os_delay(30000);
+		os_sem_give(&semLed);
+		os_delay(30000);
+	}
+}
+
+
+

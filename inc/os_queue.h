@@ -9,6 +9,7 @@
 #define ISO1_INC_OS_QUEUE_H_
 
 #include "../inc/types.h"
+#include "../inc/os_task.h"
 
 #define MAX_QUEUE_ITEM 40
 
@@ -23,6 +24,7 @@ typedef struct _queue
 	queueItem_t * 	first_item;
 	queueItem_t * 	last_item;
 	uint32_t 		count;
+	task_t* 		task_blocked;
 } queue_t;
 
 /**/

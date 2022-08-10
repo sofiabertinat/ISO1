@@ -41,17 +41,7 @@ void __attribute__((weak)) errorHook(void *caller, uint16_t error)
 /* */
 void __attribute__((weak)) returnHook(void)
 {
-	task_t* task;
-	task =os_get_current_task();
-	if(task->id == 3)
-	{
-		gpioWrite(LED1,FALSE);
-		os_task_remove(task);
-	}
-	else
-	{
-		/* In the implemented OS, no task should return, if it does it is because an error occurred */
-		/* When returning this function, in the link register it must be a pointer to the error hook */
-		while(1);
-	}
+	/* In the implemented OS, no task should return, if it does it is because an error occurred */
+	/* When returning this function, in the link register it must be a pointer to the error hook */
+	while(1);
 }
