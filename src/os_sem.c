@@ -18,6 +18,7 @@ void os_sem_init(sem_t* sem)
 /* */
 void os_sem_take(sem_t* sem)
 {
+	os_enter_critial();
 	if(sem->taked)
 	{
 		sem->task = os_get_current_task();
@@ -27,6 +28,7 @@ void os_sem_take(sem_t* sem)
 	{
 		sem->taked = TRUE;
 	}
+	os_exit_critical();
 }
 
 /* */

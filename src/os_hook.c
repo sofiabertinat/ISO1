@@ -20,6 +20,7 @@ void __attribute__((weak)) errorHook(void *caller, uint16_t error)
 {
 	char maxTaskErr[] = "No more task allowed";
 	char memoryErr[] = "Memory allocation fail";
+	char isrErr[] = "No isr defined";
 	char *msg;
 	if(error == MEMORY_ERROR)
 	{
@@ -30,6 +31,11 @@ void __attribute__((weak)) errorHook(void *caller, uint16_t error)
 	else if(error == MAX_TASK_ERROR)
 	{
 		msg = maxTaskErr;
+		uartWriteString(UART_USB,msg);
+	}
+	else if(error == ISR_ERROR)
+	{
+		msg = isrErr;
 		uartWriteString(UART_USB,msg);
 	}
 	else

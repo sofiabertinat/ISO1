@@ -43,6 +43,6 @@ void os_queue_delete(queue_t* queue);
 void* os_queue_read( queue_t* queue);
 
 /**/
-void os_queue_write( queue_t* queue, void* item );
+void os_queue_write( queue_t* queue, void* item , bool from_irq);
 
 #endif /* ISO1_INC_OS_QUEUE_H_ */

@@ -44,7 +44,8 @@
 #define MEMORY_ERROR 		0x01
 #define TASK_RETURN_ERROR 	0X02
 #define MAX_TASK_ERROR 		0X03
+#define ISR_ERROR 			0X04
 
-
+#define CANT_BUTTONS		4
 
 #endif /* ISO1_INC_TYPES_H_ */

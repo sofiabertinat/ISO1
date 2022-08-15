@@ -10,16 +10,11 @@
 
 #define MAX_TASK_LIST		8
 
-typedef enum _osState
-{
-	OS_STARTING = 0,
-	OS_SCHEDULING,
-	OS_RUN,
-} osState_t;
 
 typedef struct _osControl
 {
 	osState_t 	sys_state;
+	osState_t 	sys_previous_state;
 	task_t 		*current_task;
 	task_t 		*next_task;
 	uint16_t 	error;
@@ -27,36 +22,11 @@ typedef struct _osControl
 	int 		cant;
 	uint32_t 	os_tick_count;
 	uint16_t 	os_critical_count;
-	bool schedulingFromIRQ;
 } osControl_t;
 
 osControl_t control_OS;
 
 task_t TaskIdle;
-
-/* */
-void os_task_create(task_t * pTask, void * entryPoint, const char * const pcName, void * const pvParameters, uint8_t priority)
-{
-	bool taskCreated = 0;
-	u_int32_t id;
-
-	if(control_OS.cant < MAX_TASK_LIST)
-	{
-		control_OS.cant = control_OS.cant +1;
-
-		taskCreated = os_task_init(pTask, entryPoint, pcName, pvParameters, priority, control_OS.cant);
-
-		if(taskCreated)
-		{
-			control_OS.list[control_OS.cant-1] = pTask;
-		}
-	}
-	else
-	{
-		os_set_error(NULL, MAX_TASK_ERROR);
-	}
-}
-
 
 /* */
 static void os_set_pendSV(void)
@@ -96,13 +66,13 @@ static bool os_scheduler(void)
 	{
 		/*The scheduler can be called from an exception given by Systick in Handler mode,
 		 * or by the function os_cpu_yield in Thread mode */
-		if (control_OS.sys_state== OS_SCHEDULING)
+		if (control_OS.sys_state == OS_SCHEDULING)
 		{
 			return RETURN_FAIL;
 		}
 		else
 		{
-			control_OS.sys_state = OS_SCHEDULING;
+			os_set_state(OS_SCHEDULING);
 		}
 
 		aux_p = 255;
@@ -156,14 +126,14 @@ static bool os_scheduler(void)
 
 		if(control_OS.current_task->state == TASK_BLOCKED)
 		{
-			control_OS.sys_state = OS_RUN;
+			os_set_state(OS_RUN);
 			os_set_pendSV();
 		}
 
-		control_OS.sys_state = OS_RUN;
-
-		return RETURN_OK;
+		os_set_state(OS_RUN);
 	}
+
+	return RETURN_OK;
 }
 
 /* SysTick: Exception generated from system timer. Used as a time base in OS.*/
@@ -187,24 +157,28 @@ void __attribute__((weak)) os_idle_task(void)  {
 	}
 }
 
-/* */
-void os_init(void)
+/**/
+void os_init_control_struct(void)
 {
 	int i;
 
-	/* Init control struct*/
+	control_OS.sys_previous_state = OS_STARTING;
 	control_OS.sys_state = OS_STARTING;
 	control_OS.current_task = NULL;
 	control_OS.next_task = NULL;
 	control_OS.error = 0;
-	if(control_OS.cant < MAX_TASK_LIST)
-	{
-		for (i = control_OS.cant; i < MAX_TASK_LIST; i++)
-		{
-			control_OS.list[i] = NULL;
-		}
-	}
+	control_OS.cant = 0;
 
+	for (i = control_OS.cant; i < MAX_TASK_LIST; i++)
+	{
+		control_OS.list[i] = NULL;
+	}
+}
+
+
+/* */
+void os_init(void)
+{
 	/*
 	 * Todas las interrupciones tienen prioridad 0 (la maxima) al iniciar la ejecucion. Para que
 	 * no se de la condicion de fault mencionada en la teoria, debemos bajar su prioridad en el
@@ -227,7 +201,7 @@ uint32_t getcontextSwitch(uint32_t sp_current)
 		/* Change task state to RUNNING */
 		control_OS.current_task->state = TASK_RUNNING;
 		/* Change system state to RUN*/
-		control_OS.sys_state = OS_RUN;
+		os_set_state(OS_RUN);
 
 		/* Return next line to run*/
 		sp_next = control_OS.current_task->stack_pointer;
@@ -253,6 +227,8 @@ uint32_t getcontextSwitch(uint32_t sp_current)
 		}
 		else
 		{
+			/* Save current MSP in task struct, before update of control struct */
+			control_OS.current_task->stack_pointer = sp_current;
 			sp_next = control_OS.current_task->stack_pointer;
 		}
 	}
@@ -281,10 +257,10 @@ void os_enter_critial(void)
 /**/
 void os_exit_critical(void)
 {
-	control_OS.os_critical_count--;
-	if(control_OS.os_critical_count <=0 )
+	if(control_OS.os_critical_count > 0)
+		control_OS.os_critical_count--;
+	if(control_OS.os_critical_count == 0 )
 	{
-		control_OS.os_critical_count = 0;
 		__enable_irq();
 	}
 }
@@ -308,6 +284,7 @@ uint32_t os_get_tick_count( void )
 void os_block_current_task(void)
 {
 	control_OS.current_task->state = TASK_BLOCKED;
+	os_exit_critical();
 	os_cpu_yield();
 }
 
@@ -335,6 +312,30 @@ void os_cpu_yield(void)
 	os_scheduler();
 }
 
+/* */
+void os_task_create(task_t * pTask, void * entryPoint, const char * const pcName, void * const pvParameters, uint8_t priority)
+{
+	bool taskCreated = 0;
+	u_int32_t id;
+
+	if(control_OS.cant < MAX_TASK_LIST)
+	{
+		control_OS.cant = control_OS.cant +1;
+
+		taskCreated = os_task_init(pTask, entryPoint, pcName, pvParameters, priority, control_OS.cant);
+
+		if(taskCreated)
+		{
+			control_OS.list[control_OS.cant-1] = pTask;
+		}
+	}
+	else
+	{
+		os_set_error(NULL, MAX_TASK_ERROR);
+	}
+}
+
+/**/
 void os_task_remove(task_t * pTask)
 {
 	int i, j;
@@ -360,3 +361,19 @@ void os_task_remove(task_t * pTask)
 	os_cpu_yield();
 
 }
+
+void os_set_state(osState_t state)
+{
+	control_OS.sys_previous_state = control_OS.sys_state;
+	control_OS.sys_state = state;
+}
+
+void os_set_previous_state(void)
+{
+	osState_t state;
+	state = control_OS.sys_state;
+	control_OS.sys_state = control_OS.sys_previous_state;
+	control_OS.sys_previous_state =  state;
+}
+
+

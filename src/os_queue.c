@@ -103,10 +103,11 @@ void* os_queue_read( queue_t* queue)
 }
 
 /**/
-void os_queue_write( queue_t* queue, void* item )
+void os_queue_write( queue_t* queue, void* item, bool from_irq )
 {
 	queueItem_t* new_item = os_queue_item_create(item);
 
+	os_enter_critial();
 	if(new_item)
 	{
 		new_item->item = item;
@@ -126,8 +127,11 @@ void os_queue_write( queue_t* queue, void* item )
 		{
 			if(queue->count == MAX_QUEUE_ITEM)
 			{
-				queue->task_blocked = os_get_current_task();
-				os_block_current_task();
+				if(from_irq == FALSE)
+				{
+					queue->task_blocked = os_get_current_task();
+					os_block_current_task();
+				}
 			}
 			else
 			{
@@ -142,5 +146,5 @@ void os_queue_write( queue_t* queue, void* item )
 			}
 		}
 	}
-
+	os_exit_critical();
 }

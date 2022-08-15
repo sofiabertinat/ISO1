@@ -22,10 +22,8 @@ void os_delay(uint32_t time_ms)
 
 	aux_ticks = current_ticks + time_ms /TickRateMS;
 
-	os_block_current_task();
-
 	os_set_current_task_ticks(aux_ticks);
 
-	os_exit_critical();
+	os_block_current_task();
 
 }

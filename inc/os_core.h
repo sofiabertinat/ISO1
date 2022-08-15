@@ -11,6 +11,17 @@
 #include "../inc/types.h"
 #include "../inc/os_task.h"
 
+typedef enum _osState
+{
+	OS_STARTING = 0,
+	OS_SCHEDULING,
+	OS_RUN,
+	OS_IRQ,
+} osState_t;
+
+/**/
+void os_init_control_struct(void);
+
 /* */
 void os_init(void);
 
@@ -46,5 +57,11 @@ void os_cpu_yield(void);
 
 /**/
 void os_task_remove(task_t * pTask);
+
+/**/
+void os_set_state(osState_t state);
+
+/**/
+void os_set_previous_state(void);
 
 #endif /* ISO1_INC_OS_CORE_H_ */
