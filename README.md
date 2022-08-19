@@ -4,13 +4,13 @@ Implementación de un sistema operativo
 
 IMPLEMENTACIÓN OS:
 
-  -IRQ    -> Se crean dos vectores, uno para almacenar los punteros a las isr definidas por el usuario, y otro para almacenar un valor pasado por parámetro al                      registrar la isr, que correspode a un uint8_t, este puede de ser usado por el usuario a su conveniencia. En mi aplicación lo utilice para usar la misma                función de isr para todas las teclas y poder diferenciar de quien provenia la interrupción.
+  - IRQ    -> Se crean dos vectores, uno para almacenar los punteros a las isr definidas por el usuario, y otro para almacenar un valor pasado por parámetro al                      registrar la isr, que correspode a un uint8_t, este puede de ser usado por el usuario a su conveniencia. En mi aplicación lo utilice para usar la misma                función de isr para todas las teclas y poder diferenciar de quien provenia la interrupción.
              Mediante las funcion os_isr_register() se define la isr correspondiente a una interrupción, y  os_isr_unregister() permite eliminar esta.
              Todas las interrupciones llaman a la función os_IRQHandler(), la cual se encarga de ejecutar la isr definida por el usuario, limpia la irq pendiente y                  hace un rescheduler de ser necesario.
              Se crea una función (os_my_IRQ_Init) para inicializar la configuración de la IRQ a utilizar en la aplicación, en este caso los 8 canales para el manejo de              las 4 teclas.
              La definición de la isr debe de devuelve un booleano indicando si se requiere un rescheduler, y debe de tener como parámetro un uint8_t.
   
-  -Colas  ->  Permite el pasaje de cualquier tipo de elemento.
+  - Colas  ->  Permite el pasaje de cualquier tipo de elemento.
               Se implementa el bloqueo de las tarea que llama a os_queue_write si la cola esta llena, con excepción de si la tarea proviene de una isr, esto debe                     indicarse en el parámetro correspondiente de la función, mediante un booleano.
               Se implementa el bloqueo de las tarea que llama a os_queue_read si la cola esta vacía.
               Se debe de tener en cuenta que el usuario debe de manejar correctamente la memoria de los datos enviados a traves de la cola. Se recomienda la                         utilizaciónde malloc para obtener un lugar de memoria para almacenar el dato a envíar, en consecuencia, el usuario debe de liberar la misma una vez                     recibido el dato por la cola.
