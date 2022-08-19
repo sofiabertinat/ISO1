@@ -15,7 +15,7 @@ IMPLEMENTACIÓN OS:
               Se implementa el bloqueo de las tarea que llama a os_queue_read si la cola esta vacía.
               Se debe de tener en cuenta que el usuario debe de manejar correctamente la memoria de los datos enviados a traves de la cola. Se recomienda la                         utilizaciónde malloc para obtener un lugar de memoria para almacenar el dato a envíar, en consecuencia, el usuario debe de liberar la misma una vez                     recibido el dato por la cola.
               
-   -Semaforos binarios
+   - Semaforos binarios
    
    - Delay
    
